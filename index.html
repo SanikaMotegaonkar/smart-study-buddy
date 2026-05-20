@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Study Buddy · productivity dashboard</title>
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ===== style.css ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Inter", sans-serif;
+      transition: background-color 0.3s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: linear-gradient(145deg, #f0f5ff 0%, #e9eef7 100%);
+    }
+
+    /* DARK MODE BODY */
+    body.dark {
+      background: linear-gradient(145deg, #121826 0%, #1a1f2f 100%);
+    }
+
+    /* main dashboard grid */
+    .dashboard {
+      max-width: 1400px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.8rem;
+      align-items: start;
+    }
+
+    /* glassmorphism cards */
+    .card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-radius: 2.5rem;
+      box-shadow: 0 20px 40px -12px rgba(0, 20, 40, 0.25), 0 8px 24px -6px rgba(0, 32, 64, 0.1);
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.25s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 28px 48px -16px rgba(0, 40, 80, 0.3);
+      transform: translateY(-4px);
+    }
+
+    body.dark .card {
+      background: rgba(18, 22, 38, 0.7);
+      backdrop-filter: blur(16px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    body.dark .card:hover {
+      box-shadow: 0 28px 48px -12px #0b0e17;
+    }
+
+    h2 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #0b1e38;
+    }
+
+    body.dark h2 {
+      color: #eef3fc;
+    }
+
+    h2 i {
+      color: #3b6eff;
+      font-size: 1.6rem;
+    }
+
+    /* timer circle & controls */
+    .pomodoro-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .progress-ring {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .progress-ring__circle-bg, .progress-ring__circle {
+      transition: stroke-dashoffset 0.3s;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: #102a4c;
+    }
+
+    body.dark .timer-text {
+      color: #ffffff;
+    }
+
+    .mode-badge {
+      background: rgba(59, 110, 255, 0.18);
+      padding: 0.35rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #1f3a77;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(59, 110, 255, 0.3);
+    }
+
+    body.dark .mode-badge {
+      background: rgba(110, 150, 255, 0.15);
+      color: #c6d9ff;
+      border-color: #2c3f7e;
+    }
+
+    .timer-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      justify-content: center;
+      margin: 1rem 0 0.5rem;
+    }
+
+    .timer-set {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .timer-set input {
+      width: 70px;
+      padding: 0.6rem 0.3rem;
+      text-align: center;
+      border-radius: 30px;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.7);
+      font-weight: 600;
+    }
+
+    body.dark .timer-set input {
+      background: #222842;
+      border-color: #343b55;
+      color: white;
+    }
+
+    .btn {
+      background: white;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 40px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0, 30, 60, 0.08);
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.6);
+      color: #11223b;
+      transition: 0.15s;
+    }
+
+    .btn i { font-size: 1rem; }
+
+    .btn:hover {
+      background: #f6faff;
+      transform: scale(1.02);
+      box-shadow: 0 10px 20px -8px rgba(30, 70, 200, 0.3);
+    }
+
+    body.dark .btn {
+      background: #282f44;
+      border-color: #3f486b;
+      color: #eef3fc;
+      box-shadow: 0 6px 14px #0b0f19;
+    }
+
+    body.dark .btn:hover {
+      background: #323d5c;
+    }
+
+    .btn-primary {
+      background: #3b6eff;
+      color: white;
+      border-color: #2a5be0;
+    }
+    .btn-primary:hover { background: #2555e0; }
+
+    /* task manager */
+    .task-input-row {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .task-input-row input, .task-input-row select {
+      padding: 0.8rem 1rem;
+      border-radius: 40px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.7);
+      flex: 1 1 130px;
+      font-weight: 500;
+    }
+
+    body.dark .task-input-row input, body.dark .task-input-row select {
+      background: #222842;
+      border-color: #343f60;
+      color: white;
+    }
+
+    .task-list {
+      list-style: none;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 0.3rem;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 0.9rem 0.9rem 1.2rem;
+      background: rgba(255,255,255,0.5);
+      border-radius: 40px;
+      margin-bottom: 0.7rem;
+      border: 1px solid rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+    }
+
+    body.dark .task-item {
+      background: rgba(28, 34, 52, 0.7);
+      border-color: #2f3855;
+    }
+
+    .task-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .priority-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      background: #e1e8ff;
+      color: #13294e;
+      text-transform: uppercase;
+    }
+
+    body.dark .priority-badge {
+      background: #2a3457;
+      color: #ccdaff;
+    }
+
+    .priority-high { background: #ffe2dd; color: #a52a2a; }
+    .priority-medium { background: #fff3cd; color: #8e6100; }
+    .priority-low { background: #dff0d8; color: #1f6d1f; }
+    body.dark .priority-high { background: #5e3530; color: #ffb6b6; }
+    body.dark .priority-medium { background: #5f5230; color: #ffdfa0; }
+    body.dark .priority-low { background: #25532b; color: #b6f0bc; }
+
+    .task-completed .task-text {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .task-actions button {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      color: #3d506e;
+    }
+    body.dark .task-actions button { color: #b9c6e6; }
+    .task-actions button:hover { color: #3b6eff; }
+
+    /* stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .stat-item {
+      background: rgba(255,255,255,0.5);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      text-align: center;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    body.dark .stat-item {
+      background: #22284270;
+      border-color: #36405f;
+    }
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #102a4c;
+    }
+    body.dark .stat-value { color: #f0f5ff; }
+    .stat-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #37507a;
+    }
+    body.dark .stat-label { color: #a9b9dc; }
+
+    .dark-toggle {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      background: white;
+      border-radius: 60px;
+      padding: 0.6rem 1.2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      border: 1px solid #ddd;
+      cursor: pointer;
+      z-index: 999;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+    }
+    body.dark .dark-toggle {
+      background: #1f253b;
+      border-color: #485173;
+      color: white;
+    }
+
+    /* responsiveness */
+    @media (max-width: 700px) {
+      .dashboard { grid-template-columns: 1fr; }
+      .dark-toggle { top: 10px; right: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="dark-toggle" id="darkModeToggle"><i class="fas fa-moon"></i> Dark / Light</button>
+
+  <div class="dashboard">
+    <!-- POMODORO CARD -->
+    <div class="card">
+      <h2><i class="fas fa-clock"></i> Focus timer</h2>
+      <div class="pomodoro-container">
+        <div class="mode-badge" id="modeDisplay">Study mode</div>
+
+        <!-- custom time set -->
+        <div class="timer-set">
+          <input type="number" id="hoursInput" min="0" max="23" value="0" placeholder="hh"> <span>:</span>
+          <input type="number" id="minutesInput" min="0" max="59" value="25" placeholder="mm"> 
+          <button class="btn" id="setTimerBtn"><i class="fas fa-check"></i> Set</button>
+        </div>
+
+        <!-- circular progress & timer -->
+        <div class="progress-ring">
+          <svg width="200" height="200">
+            <circle class="progress-ring__circle-bg" stroke="#d9e2f0" stroke-width="8" fill="transparent" r="86" cx="100" cy="100"/>
+            <circle class="progress-ring__circle" stroke="#3b6eff" stroke-width="10" fill="transparent" r="86" cx="100" cy="100" stroke-dasharray="540.53" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div class="timer-text" id="timerDisplay">00:00:00</div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="btn" id="startTimerBtn"><i class="fas fa-play"></i> Start</button>
+          <button class="btn" id="pauseTimerBtn"><i class="fas fa-pause"></i> Pause</button>
+          <button class="btn" id="resetTimerBtn"><i class="fas fa-undo-alt"></i> Reset</button>
+        </div>
+        <p style="font-size:0.85rem; margin-top:0.3rem;"><i class="far fa-bell"></i> Notifies when session ends</p>
+      </div>
+    </div>
+
+    <!-- TASK MANAGER CARD -->
+    <div class="card">
+      <h2><i class="fas fa-tasks"></i> Study tasks</h2>
+      <div class="task-input-row">
+        <input type="text" id="taskInput" placeholder="e.g. read chapter 4" maxlength="60">
+        <select id="prioritySelect">
+          <option value="High">🔴 High</option>
+          <option value="Medium" selected>🟡 Medium</option>
+          <option value="Low">🟢 Low</option>
+        </select>
+        <button class="btn btn-primary" id="addTaskBtn"><i class="fas fa-plus"></i> Add</button>
+      </div>
+      <ul class="task-list" id="taskList"></ul>
+    </div>
+
+    <!-- STATISTICS CARD -->
+    <div class="card">
+      <h2><i class="fas fa-chart-pie"></i> Study stats</h2>
+      <div class="stats-grid">
+        <div class="stat-item"><span class="stat-value" id="totalSessions">0</span><div class="stat-label">Sessions</div></div>
+        <div class="stat-item"><span class="stat-value" id="totalStudyTime">0</span><div class="stat-label">Study min</div></div>
+        <div class="stat-item"><span class="stat-value" id="completedTasksStat">0</span><div class="stat-label">Tasks done</div></div>
+        <div class="stat-item"><span class="stat-value" id="streakPlaceholder">⚡</span><div class="stat-label">focus streak</div></div>
+      </div>
+      <p style="margin-top:1rem; font-size:0.9rem; opacity:0.7;"><i class="far fa-save"></i> All data saved automatically</p>
+    </div>
+  </div>
+
+  <script>
+    // ==================== FULLY FUNCTIONAL SCRIPT ====================
+    (function() {
+      // ----- DARK MODE -----
+      const darkToggle = document.getElementById('darkModeToggle');
+      darkToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+      });
+
+      // ----- GLOBAL VARIABLES & DOM -----
+      const hoursInput = document.getElementById('hoursInput');
+      const minutesInput = document.getElementById('minutesInput');
+      const setTimerBtn = document.getElementById('setTimerBtn');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const modeDisplay = document.getElementById('modeDisplay');
+      const startBtn = document.getElementById('startTimerBtn');
+      const pauseBtn = document.getElementById('pauseTimerBtn');
+      const resetBtn = document.getElementById('resetTimerBtn');
+
+      const taskInput = document.getElementById('taskInput');
+      const prioritySelect = document.getElementById('prioritySelect');
+      const addTaskBtn = document.getElementById('addTaskBtn');
+      const taskList = document.getElementById('taskList');
+
+      // Stats spans
+      const totalSessionsSpan = document.getElementById('totalSessions');
+      const totalStudyTimeSpan = document.getElementById('totalStudyTime');
+      const completedTasksStat = document.getElementById('completedTasksStat');
+
+      // Progress circle
+      const circle = document.querySelector('.progress-ring__circle');
+      const radius = 86;
+      const circumference = 2 * Math.PI * radius;
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+      circle.style.strokeDashoffset = '0';
+
+      // Timer state
+      let totalSeconds = 25 * 60;
+      let remainingSeconds = totalSeconds;
+      let timerInterval = null;
+      let isStudyMode = true;
+      let timerRunning = false;
+      
+      // Store custom time values
+      let customHours = 0;
+      let customMinutes = 25;
+
+      // Notifications permission
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+
+      // ----- STATISTICS -----
+      let stats = {
+        sessions: 0,
+        totalStudyMinutes: 0,
+        completedTasks: 0
+      };
+
+      function loadStats() {
+        const saved = localStorage.getItem('smartStudyStats');
+        if (saved) {
+          try { stats = JSON.parse(saved); } catch(e) {}
+        }
+        updateStatsUI();
+      }
+      
+      function saveStats() {
+        localStorage.setItem('smartStudyStats', JSON.stringify(stats));
+        updateStatsUI();
+      }
+      
+      function updateStatsUI() {
+        totalSessionsSpan.innerText = stats.sessions || 0;
+        totalStudyTimeSpan.innerText = stats.totalStudyMinutes || 0;
+        completedTasksStat.innerText = stats.completedTasks || 0;
+      }
+
+      // ----- TASKS -----
+      let tasks = [];
+
+      function loadTasks() {
+        const saved = localStorage.getItem('smartStudyTasks');
+        if (saved) {
+          try { tasks = JSON.parse(saved); } catch(e) { tasks = []; }
+        }
+        renderTasks();
+      }
+
+      function saveTasks() {
+        localStorage.setItem('smartStudyTasks', JSON.stringify(tasks));
+        updateCompletedTasksCount();
+      }
+
+      function updateCompletedTasksCount() {
+        const completed = tasks.filter(t => t.completed).length;
+        stats.completedTasks = completed;
+        saveStats();
+      }
+
+      function renderTasks() {
+        taskList.innerHTML = '';
+        tasks.forEach((task, index) => {
+          const li = document.createElement('li');
+          li.className = `task-item ${task.completed ? 'task-completed' : ''}`;
+
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'task-info';
+
+          const prioritySpan = document.createElement('span');
+          prioritySpan.className = `priority-badge priority-${task.priority.toLowerCase()}`;
+          prioritySpan.innerText = task.priority;
+
+          const textSpan = document.createElement('span');
+          textSpan.className = 'task-text';
+          textSpan.innerText = task.text;
+
+          infoDiv.appendChild(prioritySpan);
+          infoDiv.appendChild(textSpan);
+
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'task-actions';
+
+          const completeBtn = document.createElement('button');
+          completeBtn.innerHTML = task.completed ? '<i class="fas fa-undo-alt"></i>' : '<i class="fas fa-check-circle"></i>';
+          completeBtn.onclick = () => {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+          };
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+          deleteBtn.onclick = () => {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+          };
+
+          actionsDiv.appendChild(completeBtn);
+          actionsDiv.appendChild(deleteBtn);
+          li.appendChild(infoDiv);
+          li.appendChild(actionsDiv);
+          taskList.appendChild(li);
+        });
+        updateCompletedTasksCount();
+      }
+
+      addTaskBtn.addEventListener('click', () => {
+        const text = taskInput.value.trim();
+        if (!text) return;
+        const priority = prioritySelect.value;
+        tasks.push({ text, priority, completed: false });
+        saveTasks();
+        renderTasks();
+        taskInput.value = '';
+      });
+
+      // ----- TIMER FUNCTIONS -----
+      function updateTimerDisplay() {
+        const hrs = Math.floor(remainingSeconds / 3600);
+        const mins = Math.floor((remainingSeconds % 3600) / 60);
+        const secs = remainingSeconds % 60;
+        timerDisplay.innerText = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        
+        const progress = remainingSeconds / totalSeconds;
+        const offset = circumference * (1 - progress);
+        circle.style.strokeDashoffset = Math.max(0, Math.min(offset, circumference));
+      }
+
+      function setModeUI() {
+        modeDisplay.innerText = isStudyMode ? '📘 Study mode' : '☕ Break mode';
+        circle.style.stroke = isStudyMode ? '#3b6eff' : '#42b883';
+      }
+
+      function stopTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        timerRunning = false;
+      }
+
+      function finishSession() {
+        stopTimer();
+        timerRunning = false;
+
+        if (Notification.permission === 'granted') {
+          new Notification('Smart Study Buddy', {
+            body: isStudyMode ? '✅ Study session finished! Time for a break.' : '☕ Break over — back to study!'
+          });
+        } else {
+          alert('Timer finished! ' + (isStudyMode ? 'Switch to break.' : 'Back to study.'));
+        }
+
+        if (isStudyMode) {
+          stats.sessions = (stats.sessions || 0) + 1;
+          const sessionMinutes = Math.ceil(totalSeconds / 60);
+          stats.totalStudyMinutes = (stats.totalStudyMinutes || 0) + sessionMinutes;
+          saveStats();
+        }
+
+        isStudyMode = !isStudyMode;
+        
+        if (isStudyMode) {
+          totalSeconds = (customHours * 3600) + (customMinutes * 60);
+        } else {
+          totalSeconds = 5 * 60;
+        }
+        
+        remainingSeconds = totalSeconds;
+        setModeUI();
+        updateTimerDisplay();
+      }
+
+      function startTimer() {
+        if (timerRunning) return;
+        if (remainingSeconds <= 0) {
+          if (isStudyMode) {
+            totalSeconds = (customHours * 3600) + (customMinutes * 60);
+          } else {
+            totalSeconds = 5 * 60;
+          }
+          remainingSeconds = totalSeconds;
+        }
+        timerRunning = true;
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerDisplay();
+          } 
+          if (remainingSeconds === 0) {
+            finishSession();
+          }
+        }, 1000);
+      }
+
+      pauseBtn.addEventListener('click', stopTimer);
+
+      // FIXED RESET BUTTON
+      resetBtn.addEventListener('click', () => {
+        stopTimer();
+        
+        let h = parseInt(hoursInput.value) || 0;
+        let m = parseInt(minutesInput.value) || 0;
+        
+        if (h === 0 && m === 0) {
+          m = 25;
+          minutesInput.value = 25;
+        }
+        
+        customHours = h;
+        customMinutes = m;
+        
+        if (isStudyMode) {
+          totalSeconds = (h * 3600) + (m * 60);
+        } else {
+          totalSeconds = 5 * 60;
+        }
+        
+        remainingSeconds = totalSeconds;
+        updateTimerDisplay();
+        circle.style.strokeDashoffset = 0;
+        timerRunning = false;
+      });
+
+      // SET CUSTOM TIME BUTTON
+      setTimerBtn.addEventListener('click', () => {
+        let h = parseInt(hoursInput.value) || 0;
+        let m = parseInt(minutesInput.value) || 0;
+        
+        if (h === 0 && m === 0) {
+          m = 25;
+          minutesInput.value = 25;
+        }
+        
+        customHours = h;
+        customMinutes = m;
+        
+        if (isStudyMode) {
+          totalSeconds = (customHours * 3600) + (customMinutes * 60);
+          remainingSeconds = totalSeconds;
+          updateTimerDisplay();
+          circle.style.strokeDashoffset = 0;
+        }
+      });
+
+      startBtn.addEventListener('click', startTimer);
+
+      // ----- INITIALIZATION -----
+      function init() {
+        hoursInput.value = 0;
+        minutesInput.value = 25;
+        customHours = 0;
+        customMinutes = 25;
+        totalSeconds = 25 * 60;
+        remainingSeconds = totalSeconds;
+        updateTimerDisplay();
+        setModeUI();
+        loadStats();
+        loadTasks();
+      }
+      
+      init();
+    })();
+  </script>
+</body>
+</html>
