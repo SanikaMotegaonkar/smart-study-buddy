@@ -17,7 +17,6 @@ Smart Study Buddy is a simple productivity web application created using HTML, C
 This project helps students manage study sessions and tasks efficiently.
 
 ## Future Improvements
-- Dark mode
 - Local storage
 - Responsive design
 - Notification sound
